@@ -32,16 +32,19 @@ exports.handler = async (event, context) => {
         }
         
         const header = { alg: "HS256", typ: "JWT" };
+
+        // 🔑 Payload for Intercom JWT
         const payload = {
             user_id: user_id,
             email: email || '',
             name: name || '',
             exp: Math.floor(Date.now() / 1000) + 3600
         };
-        
-        // Add location_id to payload if provided
+
+        // ✅ Add location_id and also as "subaccount-id"
         if (location_id) {
             payload.location_id = location_id;
+            payload["subaccount-id"] = location_id;  // NEW → Intercom will accept this securely
         }
         
         function base64UrlEncode(obj) {
@@ -73,9 +76,10 @@ exports.handler = async (event, context) => {
             user_id: user_id
         };
         
-        // Include location_id in response if provided
+        // Include location_id in response (handy for debugging)
         if (location_id) {
             response.location_id = location_id;
+            response["subaccount-id"] = location_id; // NEW → return it so you can log/verify
         }
         
         return {
