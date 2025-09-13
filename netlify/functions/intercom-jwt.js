@@ -21,7 +21,7 @@ exports.handler = async (event, context) => {
     }
     
     try {
-        const { user_id, email, name } = JSON.parse(event.body || '{}');
+        const { user_id, email, name, location_id } = JSON.parse(event.body || '{}');
         
         if (!user_id) {
             return {
@@ -38,6 +38,11 @@ exports.handler = async (event, context) => {
             name: name || '',
             exp: Math.floor(Date.now() / 1000) + 3600
         };
+        
+        // Add location_id to payload if provided
+        if (location_id) {
+            payload.location_id = location_id;
+        }
         
         function base64UrlEncode(obj) {
             return Buffer.from(JSON.stringify(obj))
@@ -62,14 +67,21 @@ exports.handler = async (event, context) => {
         
         const token = message + "." + signature;
         
+        const response = {
+            token: token,
+            expires_in: 3600,
+            user_id: user_id
+        };
+        
+        // Include location_id in response if provided
+        if (location_id) {
+            response.location_id = location_id;
+        }
+        
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ 
-                token: token,
-                expires_in: 3600,
-                user_id: user_id
-            })
+            body: JSON.stringify(response)
         };
         
     } catch (error) {
